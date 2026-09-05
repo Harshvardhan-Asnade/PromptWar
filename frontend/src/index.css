@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-canvas: #090a0d;
+  --color-surface: #11141a;
+  --color-surface-subtle: #171b24;
+  --color-border-subtle: #222733;
+  --color-accent-amber: #e5a93c;
+}
+
+/* Base styles */
+html {
+  background-color: #090a0d;
+  color: #e5e7eb;
+  font-family: var(--font-sans);
+}
+
+/* Lenis smooth scroll recommended CSS */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Custom editorial typography utilities */
+.font-editorial-serif {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+
+.font-editorial-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
