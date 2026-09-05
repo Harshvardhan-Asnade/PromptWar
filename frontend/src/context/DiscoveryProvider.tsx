@@ -52,18 +52,30 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [mentorThinkingStep, setMentorThinkingStep] = useState<number>(0)
   const [mentorError, setMentorError] = useState<string | null>(null)
 
-  // Timer lifecycle management ref to avoid leaks across fast re-renders/unmounts
+  // Timer and request lifecycle management refs (Phase A4, C5 & Part 2.4)
   const activeTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+  const activeAbortControllerRef = useRef<AbortController | null>(null)
 
   const clearActiveTimers = useCallback(() => {
     activeTimersRef.current.forEach(clearTimeout)
     activeTimersRef.current = []
   }, [])
 
+  const abortPendingRequests = useCallback(() => {
+    if (activeAbortControllerRef.current) {
+      activeAbortControllerRef.current.abort()
+      activeAbortControllerRef.current = null
+    }
+  }, [])
+
   useEffect(() => {
     return () => {
       activeTimersRef.current.forEach(clearTimeout)
       activeTimersRef.current = []
+      if (activeAbortControllerRef.current) {
+        activeAbortControllerRef.current.abort()
+        activeAbortControllerRef.current = null
+      }
     }
   }, [])
 
@@ -96,6 +108,11 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [])
 
   const navigateTo = useCallback((route: AppRoute) => {
+    // Cancel any background request that belongs to the prior view
+    if (activeAbortControllerRef.current) {
+      activeAbortControllerRef.current.abort()
+      activeAbortControllerRef.current = null
+    }
     setCurrentRoute(route)
     if (route === 'mentor') {
       window.location.hash = 'mentor'
@@ -186,6 +203,10 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (generationStatus === 'generating') return
 
     clearActiveTimers()
+    abortPendingRequests()
+    const controller = new AbortController()
+    activeAbortControllerRef.current = controller
+
     setGenerationStatus('generating')
     setErrorMessage(null)
     setGenerationStep(0)
@@ -206,7 +227,8 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         domain: profile.domain || profile.interests[0] || 'AI / ML',
       }
 
-      const { data } = await generateProjects(payload)
+      const { data } = await generateProjects(payload, controller.signal)
+      if (controller.signal.aborted) return
       clearActiveTimers()
 
       if (data.projects && data.projects.length === 3) {
@@ -217,12 +239,13 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         throw new Error('Expected 3 project blueprints from engine')
       }
     } catch (err: unknown) {
+      if (controller.signal.aborted) return
       clearActiveTimers()
       const msg = err instanceof Error ? err.message : 'Failed to connect to AI engine'
       setErrorMessage(msg)
       setGenerationStatus('error')
     }
-  }, [generationStatus, clearActiveTimers, profile, navigateTo])
+  }, [generationStatus, clearActiveTimers, abortPendingRequests, profile, navigateTo])
 
   const clearEvaluation = useCallback(() => {
     setEvaluation(null)
@@ -242,6 +265,10 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (evaluation && !forceRefresh) return
 
       clearActiveTimers()
+      abortPendingRequests()
+      const controller = new AbortController()
+      activeAbortControllerRef.current = controller
+
       setIsEvaluating(true)
       setEvaluationError(null)
       setEvaluationStep(0)
@@ -263,11 +290,13 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           domain: profile.domain || profile.interests[0] || 'AI / ML',
         }
 
-        const { data } = await evaluateProject(selectedProject, studentContext)
+        const { data } = await evaluateProject(selectedProject, studentContext, controller.signal)
+        if (controller.signal.aborted) return
         clearActiveTimers()
         setEvaluation(data)
         setIsEvaluating(false)
       } catch (err: unknown) {
+        if (controller.signal.aborted) return
         clearActiveTimers()
         const msg =
           err instanceof Error
@@ -277,7 +306,7 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsEvaluating(false)
       }
     },
-    [selectedProject, isEvaluating, evaluation, clearActiveTimers, profile]
+    [selectedProject, isEvaluating, evaluation, clearActiveTimers, abortPendingRequests, profile]
   )
 
   const clearImprovement = useCallback(() => {
@@ -299,6 +328,10 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (improvedProject && !forceRefresh) return
 
       clearActiveTimers()
+      abortPendingRequests()
+      const controller = new AbortController()
+      activeAbortControllerRef.current = controller
+
       setIsImproving(true)
       setImprovementError(null)
       setImprovementStep(0)
@@ -324,12 +357,14 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           ? focusAreas
           : ['architecture', 'scope', 'feasibility', 'technical_depth']
 
-        const { data } = await improveProject(selectedProject, studentContext, areas)
+        const { data } = await improveProject(selectedProject, studentContext, areas, controller.signal)
+        if (controller.signal.aborted) return
         clearActiveTimers()
         setImprovementData(data)
         setImprovedProject(data.improved_project)
         setIsImproving(false)
       } catch (err: unknown) {
+        if (controller.signal.aborted) return
         clearActiveTimers()
         const msg =
           err instanceof Error
@@ -339,7 +374,7 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsImproving(false)
       }
     },
-    [selectedProject, isImproving, improvedProject, clearActiveTimers, profile]
+    [selectedProject, isImproving, improvedProject, clearActiveTimers, abortPendingRequests, profile]
   )
 
   const acceptImprovedProject = useCallback(() => {
@@ -370,6 +405,10 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (!trimmed) return
 
       clearActiveTimers()
+      abortPendingRequests()
+      const controller = new AbortController()
+      activeAbortControllerRef.current = controller
+
       const userMsg: MentorMessage = {
         id: `user-${Date.now()}`,
         role: 'user',
@@ -398,7 +437,8 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           domain: profile.domain || profile.interests[0] || 'AI / ML',
         }
 
-        const { data } = await askMentor(activeProject, studentContext, trimmed)
+        const { data } = await askMentor(activeProject, studentContext, trimmed, controller.signal)
+        if (controller.signal.aborted) return
         clearActiveTimers()
 
         const assistantMsg: MentorMessage = {
@@ -411,6 +451,7 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setMentorMessages((prev) => [...prev, assistantMsg])
         setIsAskingMentor(false)
       } catch (err: unknown) {
+        if (controller.signal.aborted) return
         clearActiveTimers()
         const msg =
           err instanceof Error
@@ -420,53 +461,96 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsAskingMentor(false)
       }
     },
-    [isAskingMentor, selectedProject, projects, clearActiveTimers, profile]
+    [isAskingMentor, selectedProject, projects, clearActiveTimers, abortPendingRequests, profile]
+  )
+
+  // Memoize entire context value to eliminate full-tree re-render cascades (Part 2.2 & 2.3)
+  const contextValue = React.useMemo(
+    () => ({
+      profile,
+      updateProfile,
+      toggleInterest,
+      toggleSkill,
+      step,
+      setStep,
+      nextStep,
+      prevStep,
+      currentRoute,
+      navigateTo,
+      projects,
+      selectedProject,
+      selectProject,
+      clearSelectedProject,
+      generationStatus,
+      generationStep,
+      errorMessage,
+      triggerGeneration,
+      resetDiscovery,
+      evaluation,
+      isEvaluating,
+      evaluationStep,
+      evaluationError,
+      runEvaluation,
+      clearEvaluation,
+      improvedProject,
+      improvementData,
+      isImproving,
+      improvementStep,
+      improvementError,
+      runImprovement,
+      acceptImprovedProject,
+      clearImprovement,
+      mentorMessages,
+      isAskingMentor,
+      mentorThinkingStep,
+      mentorError,
+      askMentorQuestion,
+      clearMentorChat,
+    }),
+    [
+      profile,
+      updateProfile,
+      toggleInterest,
+      toggleSkill,
+      step,
+      nextStep,
+      prevStep,
+      currentRoute,
+      navigateTo,
+      projects,
+      selectedProject,
+      selectProject,
+      clearSelectedProject,
+      generationStatus,
+      generationStep,
+      errorMessage,
+      triggerGeneration,
+      resetDiscovery,
+      evaluation,
+      isEvaluating,
+      evaluationStep,
+      evaluationError,
+      runEvaluation,
+      clearEvaluation,
+      improvedProject,
+      improvementData,
+      isImproving,
+      improvementStep,
+      improvementError,
+      runImprovement,
+      acceptImprovedProject,
+      clearImprovement,
+      mentorMessages,
+      isAskingMentor,
+      mentorThinkingStep,
+      mentorError,
+      askMentorQuestion,
+      clearMentorChat,
+    ]
   )
 
   return (
-    <DiscoveryContext.Provider
-      value={{
-        profile,
-        updateProfile,
-        toggleInterest,
-        toggleSkill,
-        step,
-        setStep,
-        nextStep,
-        prevStep,
-        currentRoute,
-        navigateTo,
-        projects,
-        selectedProject,
-        selectProject,
-        clearSelectedProject,
-        generationStatus,
-        generationStep,
-        errorMessage,
-        triggerGeneration,
-        resetDiscovery,
-        evaluation,
-        isEvaluating,
-        evaluationStep,
-        evaluationError,
-        runEvaluation,
-        clearEvaluation,
-        improvedProject,
-        improvementData,
-        isImproving,
-        improvementStep,
-        improvementError,
-        runImprovement,
-        acceptImprovedProject,
-        clearImprovement,
-        mentorMessages,
-        isAskingMentor,
-        mentorThinkingStep,
-        mentorError,
-        askMentorQuestion,
-        clearMentorChat,
-      }}
-    >
+    <DiscoveryContext.Provider value={contextValue}>
       {children}
     </DiscoveryContext.Provider>
   )

@@ -16,7 +16,7 @@ export function useGsapContext(
 
     const container = containerRef.current
     const ctx = gsap.context((self) => {
-      callback(self as unknown as gsap.Context, container)
+      callback(self, container)
     }, container)
 
     return () => ctx.revert()

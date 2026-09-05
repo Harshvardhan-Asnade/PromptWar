@@ -35,14 +35,24 @@ async function apiRequest<T>(
   const url = `${API_BASE_URL.replace(/\/$/, '')}${endpoint}`
   const startTime = performance.now()
 
-  // Client-side request timeout guard (Phase A4 & C5)
+  // Composite client-side timeout and cancellation guard (Phase A4 & C5)
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+
+  let abortHandler: (() => void) | undefined
+  if (options.signal) {
+    if (options.signal.aborted) {
+      controller.abort()
+    } else {
+      abortHandler = () => controller.abort()
+      options.signal.addEventListener('abort', abortHandler)
+    }
+  }
 
   try {
     const response = await fetch(url, {
       ...options,
-      signal: options.signal || controller.signal,
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -50,6 +60,9 @@ async function apiRequest<T>(
     })
 
     clearTimeout(timeoutId)
+    if (options.signal && abortHandler) {
+      options.signal.removeEventListener('abort', abortHandler)
+    }
     const latencyMs = Math.round(performance.now() - startTime)
 
     if (!response.ok) {
@@ -90,10 +103,16 @@ async function apiRequest<T>(
     return { data, latencyMs }
   } catch (err: unknown) {
     clearTimeout(timeoutId)
+    if (options.signal && abortHandler) {
+      options.signal.removeEventListener('abort', abortHandler)
+    }
     if (err instanceof ApiFetchError) {
       throw err
     }
     if (err instanceof DOMException && err.name === 'AbortError') {
+      if (options.signal?.aborted) {
+        throw new ApiFetchError('Request cancelled by user.', 499)
+      }
       throw new ApiFetchError('Request timed out waiting for AI response. Please try again.', 504)
     }
     const message = err instanceof Error ? err.message : 'Unknown network failure'
@@ -104,8 +123,10 @@ async function apiRequest<T>(
 /**
  * Health check ping
  */
-export async function getHealth(): Promise<{ data: HealthResponse; latencyMs: number }> {
-  return apiRequest<HealthResponse>('/api/health')
+export async function getHealth(
+  signal?: AbortSignal
+): Promise<{ data: HealthResponse; latencyMs: number }> {
+  return apiRequest<HealthResponse>('/api/health', { signal })
 }
 
 export const fetchHealth = getHealth
@@ -114,11 +135,13 @@ export const fetchHealth = getHealth
  * Generate 3 high-impact project blueprints matching student profile
  */
 export async function generateProjects(
-  profile: StudentProfile
+  profile: StudentProfile,
+  signal?: AbortSignal
 ): Promise<{ data: GenerateProjectsResponse; latencyMs: number }> {
   return apiRequest<GenerateProjectsResponse>('/api/projects/generate', {
     method: 'POST',
     body: JSON.stringify(profile),
+    signal,
   })
 }
 
@@ -127,7 +150,8 @@ export async function generateProjects(
  */
 export async function evaluateProject(
   project: ProjectIdea,
-  studentContext: StudentProfile
+  studentContext: StudentProfile,
+  signal?: AbortSignal
 ): Promise<{
   data: ProjectEvaluation
   latencyMs: number
@@ -138,6 +162,7 @@ export async function evaluateProject(
       project,
       student_context: studentContext,
     }),
+    signal,
   })
 }
 
@@ -147,7 +172,8 @@ export async function evaluateProject(
 export async function improveProject(
   project: ProjectIdea,
   studentContext: StudentProfile,
-  focusAreas?: string[]
+  focusAreas?: string[],
+  signal?: AbortSignal
 ): Promise<{
   data: ImproveProjectResponse
   latencyMs: number
@@ -159,6 +185,7 @@ export async function improveProject(
       student_context: studentContext,
       focus_areas: focusAreas && focusAreas.length > 0 ? focusAreas : null,
     }),
+    signal,
   })
 }
 
@@ -168,7 +195,8 @@ export async function improveProject(
 export async function askMentor(
   project: ProjectIdea,
   studentContext: StudentProfile,
-  question: string
+  question: string,
+  signal?: AbortSignal
 ): Promise<{
   data: MentorResponse
   latencyMs: number
@@ -180,5 +208,6 @@ export async function askMentor(
       student_context: studentContext,
       question: question.trim(),
     }),
+    signal,
   })
 }
