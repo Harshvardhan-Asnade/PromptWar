@@ -67,7 +67,6 @@ def test_generate_projects_valid():
         assert len(proj.roadmap) >= 1
 
     print(f"✓ POST /api/projects/generate passed (3 projects generated: {[p.title for p in validated.projects]})")
-    return validated.projects[0], payload
 
 
 def test_generate_projects_invalid_input():

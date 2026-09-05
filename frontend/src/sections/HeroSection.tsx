@@ -89,11 +89,13 @@ export const HeroSection: React.FC = () => {
           {/* LEFT ZONE: MONUMENTAL EDITORIAL HEADLINE + CTA */}
           <div className="flex flex-col justify-center">
             <div className="mb-5 sm:mb-6">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-black font-display tracking-tight text-[#111111] leading-[1.04] uppercase">
-                <SplitText text="YOUR SKILLS." delay={0.08} />
-              </h1>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-black font-display tracking-tight text-accent leading-[1.04] uppercase mt-1 sm:mt-2">
-                <SplitText text="YOUR NEXT PROJECT." delay={0.28} />
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] font-black font-display tracking-tight leading-[1.04] uppercase">
+                <span className="block text-[#111111]">
+                  <SplitText text="YOUR SKILLS." delay={0.08} />
+                </span>
+                <span className="block text-accent mt-1 sm:mt-2">
+                  <SplitText text="YOUR NEXT PROJECT." delay={0.28} />
+                </span>
               </h1>
             </div>
 

@@ -10,12 +10,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * "You know how to build things." -> pause -> "But what should you build?"
  */
 export const QuestionSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     gsap.from('.question-statement-1', {
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 70%',
       },
       y: 40,

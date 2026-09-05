@@ -1,13 +1,6 @@
-import React, { createContext, useContext } from 'react'
-import type Lenis from 'lenis'
+import React from 'react'
 import { useSmoothScroll } from '../hooks/useSmoothScroll'
-
-interface SmoothScrollContextType {
-  lenis: React.RefObject<Lenis | null>
-  scrollTo: (target: string | HTMLElement | number, options?: { offset?: number; duration?: number }) => void
-}
-
-const SmoothScrollContext = createContext<SmoothScrollContextType | null>(null)
+import { SmoothScrollContext } from './SmoothScrollContext'
 
 export const SmoothScrollProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -26,12 +19,4 @@ export const SmoothScrollProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </SmoothScrollContext.Provider>
   )
-}
-
-export function useLenisContext() {
-  const context = useContext(SmoothScrollContext)
-  if (!context) {
-    throw new Error('useLenisContext must be used within a SmoothScrollProvider')
-  }
-  return context
 }

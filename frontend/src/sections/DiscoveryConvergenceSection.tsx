@@ -13,14 +13,14 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
 export const DiscoveryConvergenceSection: React.FC = () => {
   const pinTargetRef = useRef<HTMLDivElement>(null)
 
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
     // Only pin on medium screens and up to maintain mobile scroll ergonomics
     if (typeof window !== 'undefined' && window.innerWidth < 768) return
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top top',
         end: '+=200%',
         pin: pinTargetRef.current,

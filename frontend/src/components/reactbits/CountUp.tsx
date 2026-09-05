@@ -18,14 +18,11 @@ export const CountUp: React.FC<CountUpProps> = ({
   suffix = '',
   className = '',
 }) => {
-  const [count, setCount] = useState<number>(start)
   const isReduced = prefersReducedMotion()
+  const [count, setCount] = useState<number>(isReduced ? end : start)
 
   useEffect(() => {
-    if (isReduced) {
-      setCount(end)
-      return
-    }
+    if (isReduced) return
 
     let startTime: number | null = null
     let animationFrame: number

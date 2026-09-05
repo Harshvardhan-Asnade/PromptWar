@@ -213,7 +213,7 @@ export const DiscoveryPage: React.FC = () => {
       </header>
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Page Intro (Improvement 02: PROJECT FORGE / CALIBRATION) */}
         {!isGeneratingOrError && (
           <div className="mb-10 lg:mb-12 border-b border-[#E4E2DC] pb-8">
@@ -273,7 +273,7 @@ export const DiscoveryPage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   )
 }

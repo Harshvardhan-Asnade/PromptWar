@@ -91,7 +91,7 @@ export const ProjectReviewPage: React.FC = () => {
       <ReviewNav />
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Review Hero (Always displays context & challenge statement) */}
         <ReviewHero
           project={project}

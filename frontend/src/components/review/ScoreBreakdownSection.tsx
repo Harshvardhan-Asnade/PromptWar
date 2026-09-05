@@ -18,16 +18,14 @@ export const ScoreBreakdownSection: React.FC<ScoreBreakdownSectionProps> = ({
   evaluation,
   profile,
 }) => {
+  const isReduced = prefersReducedMotion()
   const [animatedScore, setAnimatedScore] = useState<number>(
-    prefersReducedMotion() ? evaluation.overall_score : 0
+    isReduced ? evaluation.overall_score : 0
   )
 
   // Animated number count-up for overall score
   useEffect(() => {
-    if (prefersReducedMotion()) {
-      setAnimatedScore(evaluation.overall_score)
-      return
-    }
+    if (isReduced) return
 
     let start = 0
     const end = evaluation.overall_score
@@ -47,7 +45,7 @@ export const ScoreBreakdownSection: React.FC<ScoreBreakdownSectionProps> = ({
     }, stepTime)
 
     return () => clearInterval(timer)
-  }, [evaluation.overall_score])
+  }, [evaluation.overall_score, isReduced])
 
   const metrics: ScoreMetric[] = [
     {

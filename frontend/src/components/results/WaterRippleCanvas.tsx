@@ -25,11 +25,16 @@ export const WaterRippleCanvas: React.FC<WaterRippleCanvasProps> = ({
   const animFrameRef = useRef<number | null>(null)
   const lastSpawnRef = useRef<number>(0)
   const isHoveredRef = useRef<boolean>(false)
+  const isVisibleRef = useRef<boolean>(true)
+  const renderRef = useRef<() => void>(() => {})
 
   // Draw loop
   const render = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas || !isVisibleRef.current) {
+      animFrameRef.current = null
+      return
+    }
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
@@ -68,19 +73,23 @@ export const WaterRippleCanvas: React.FC<WaterRippleCanvasProps> = ({
 
     ripplesRef.current = activeRipples
 
-    // If ripples still active or card hovered, continue loop; else stop
-    if (activeRipples.length > 0) {
-      animFrameRef.current = requestAnimationFrame(render)
+    // If ripples still active and canvas visible, continue loop; else stop
+    if (activeRipples.length > 0 && isVisibleRef.current) {
+      animFrameRef.current = requestAnimationFrame(() => renderRef.current())
     } else {
       animFrameRef.current = null
     }
   }, [])
 
-  const startAnimation = useCallback(() => {
-    if (animFrameRef.current === null) {
-      animFrameRef.current = requestAnimationFrame(render)
-    }
+  useEffect(() => {
+    renderRef.current = render
   }, [render])
+
+  const startAnimation = useCallback(() => {
+    if (animFrameRef.current === null && isVisibleRef.current) {
+      animFrameRef.current = requestAnimationFrame(() => renderRef.current())
+    }
+  }, [])
 
   // Resize canvas to match container
   const updateCanvasSize = useCallback(() => {
@@ -99,12 +108,33 @@ export const WaterRippleCanvas: React.FC<WaterRippleCanvasProps> = ({
   useEffect(() => {
     if (prefersReducedMotion()) return
 
+    const canvas = canvasRef.current
+    if (!canvas) return
+
     updateCanvasSize()
     window.addEventListener('resize', updateCanvasSize)
+
+    // Pause animation when scrolled offscreen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting
+        if (entry.isIntersecting && ripplesRef.current.length > 0 && animFrameRef.current === null) {
+          animFrameRef.current = requestAnimationFrame(() => renderRef.current())
+        } else if (!entry.isIntersecting && animFrameRef.current !== null) {
+          cancelAnimationFrame(animFrameRef.current)
+          animFrameRef.current = null
+        }
+      },
+      { threshold: 0.05 }
+    )
+    observer.observe(canvas)
+
     return () => {
       window.removeEventListener('resize', updateCanvasSize)
+      observer.disconnect()
       if (animFrameRef.current) {
         cancelAnimationFrame(animFrameRef.current)
+        animFrameRef.current = null
       }
     }
   }, [updateCanvasSize])

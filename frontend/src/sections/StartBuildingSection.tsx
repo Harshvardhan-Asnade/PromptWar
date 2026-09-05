@@ -12,12 +12,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * "YOUR NEXT PROJECT STARTS HERE. Let's find the one worth building."
  */
 export const StartBuildingSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     gsap.from('.final-cta-content', {
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 75%',
       },
       y: 40,

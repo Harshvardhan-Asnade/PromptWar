@@ -1,44 +1,98 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { SmoothScrollProvider } from './components/SmoothScrollProvider'
-import { DiscoveryProvider, useDiscovery } from './context/DiscoveryContext'
+import { DiscoveryProvider } from './context/DiscoveryProvider'
+import { useDiscovery } from './context/useDiscovery'
 import { HomePage } from './pages/HomePage'
-import { DiscoveryPage } from './pages/DiscoveryPage'
-import { ResultsPage } from './pages/ResultsPage'
-import { ProjectDetailPage } from './pages/ProjectDetailPage'
-import { BlueprintPage } from './pages/BlueprintPage'
-import { ProjectReviewPage } from './pages/ProjectReviewPage'
-import { ProjectImprovePage } from './pages/ProjectImprovePage'
-import { MentorPage } from './pages/MentorPage'
+
+// Lazy load non-landing stages for optimal initial bundle payload (Phase C6)
+const DiscoveryPage = lazy(() =>
+  import('./pages/DiscoveryPage').then((m) => ({ default: m.DiscoveryPage }))
+)
+const ResultsPage = lazy(() =>
+  import('./pages/ResultsPage').then((m) => ({ default: m.ResultsPage }))
+)
+const ProjectDetailPage = lazy(() =>
+  import('./pages/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage }))
+)
+const BlueprintPage = lazy(() =>
+  import('./pages/BlueprintPage').then((m) => ({ default: m.BlueprintPage }))
+)
+const ProjectReviewPage = lazy(() =>
+  import('./pages/ProjectReviewPage').then((m) => ({ default: m.ProjectReviewPage }))
+)
+const ProjectImprovePage = lazy(() =>
+  import('./pages/ProjectImprovePage').then((m) => ({ default: m.ProjectImprovePage }))
+)
+const MentorPage = lazy(() =>
+  import('./pages/MentorPage').then((m) => ({ default: m.MentorPage }))
+)
+
+const PageFallback: React.FC = () => (
+  <div className="min-h-screen bg-[#F7F6F2] flex items-center justify-center">
+    <div className="flex items-center gap-3 font-mono text-xs text-[#767571] uppercase tracking-wider">
+      <span className="w-2 h-2 rounded-full bg-[#FF5A1F] animate-pulse" />
+      <span>LOADING WORKSPACE</span>
+    </div>
+  </div>
+)
 
 const AppContent: React.FC = () => {
   const { currentRoute } = useDiscovery()
 
   if (currentRoute === 'discovery') {
-    return <DiscoveryPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <DiscoveryPage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'results') {
-    return <ResultsPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <ResultsPage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'project-detail') {
-    return <ProjectDetailPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <ProjectDetailPage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'blueprint') {
-    return <BlueprintPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <BlueprintPage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'review') {
-    return <ProjectReviewPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <ProjectReviewPage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'improve') {
-    return <ProjectImprovePage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <ProjectImprovePage />
+      </Suspense>
+    )
   }
 
   if (currentRoute === 'mentor') {
-    return <MentorPage />
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <MentorPage />
+      </Suspense>
+    )
   }
 
   return <HomePage />

@@ -10,12 +10,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * FROM WHAT YOU KNOW -> TO WHAT YOU CAN BUILD.
  */
 export const PromiseSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 70%',
       },
     })

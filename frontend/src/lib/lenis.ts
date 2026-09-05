@@ -16,29 +16,42 @@ export interface SmoothScrollInstance {
  * Creates and connects a Lenis smooth-scroll instance with GSAP ScrollTrigger ticker.
  */
 export function initSmoothScroll(): SmoothScrollInstance {
+  const isReduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   const lenis = new Lenis({
-    duration: 1.2,
+    duration: isReduced ? 0.01 : 1.2,
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     orientation: 'vertical',
     gestureOrientation: 'vertical',
-    smoothWheel: true,
+    smoothWheel: !isReduced,
   })
 
   // Synchronize Lenis scroll events with ScrollTrigger
   lenis.on('scroll', ScrollTrigger.update)
 
-  // Integrate with GSAP animation frame ticker
-  const tickerCallback = (time: number) => {
-    lenis.raf(time * 1000)
-  }
+  if (!isReduced) {
+    // Integrate with GSAP animation frame ticker
+    const tickerCallback = (time: number) => {
+      lenis.raf(time * 1000)
+    }
 
-  gsap.ticker.add(tickerCallback)
-  gsap.ticker.lagSmoothing(0)
+    gsap.ticker.add(tickerCallback)
+    gsap.ticker.lagSmoothing(0)
+
+    return {
+      lenis,
+      destroy: () => {
+        gsap.ticker.remove(tickerCallback)
+        lenis.destroy()
+      },
+    }
+  }
 
   return {
     lenis,
     destroy: () => {
-      gsap.ticker.remove(tickerCallback)
       lenis.destroy()
     },
   }

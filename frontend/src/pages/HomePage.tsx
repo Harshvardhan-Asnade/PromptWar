@@ -26,7 +26,7 @@ export const HomePage: React.FC = () => {
       {/* Floating Light Navigation */}
       <Navigation />
 
-      <main>
+      <main id="main-content">
         {/* 01 — HERO */}
         <HeroSection />
 

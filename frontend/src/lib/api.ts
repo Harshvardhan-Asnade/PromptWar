@@ -23,8 +23,10 @@ export class ApiFetchError extends Error {
   }
 }
 
+const DEFAULT_TIMEOUT_MS = 65000
+
 /**
- * Universal fetch wrapper for Project Forge API
+ * Universal fetch wrapper for Project Forge API with timeout and safe error parsing
  */
 async function apiRequest<T>(
   endpoint: string,
@@ -33,15 +35,21 @@ async function apiRequest<T>(
   const url = `${API_BASE_URL.replace(/\/$/, '')}${endpoint}`
   const startTime = performance.now()
 
+  // Client-side request timeout guard (Phase A4 & C5)
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS)
+
   try {
     const response = await fetch(url, {
       ...options,
+      signal: options.signal || controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
       },
     })
 
+    clearTimeout(timeoutId)
     const latencyMs = Math.round(performance.now() - startTime)
 
     if (!response.ok) {
@@ -60,6 +68,17 @@ async function apiRequest<T>(
         // Response was not JSON
       }
 
+      // Safe user-facing fallback messages (Phase B9)
+      if (response.status === 429) {
+        errorMessage = 'Too many requests. Please wait a moment before trying again.'
+      } else if (response.status === 413) {
+        errorMessage = 'Payload too large. Please reduce the size of your input.'
+      } else if (response.status === 504) {
+        errorMessage = 'AI synthesis timed out. Please try again with simpler constraints.'
+      } else if (response.status >= 500 && !errorMessage) {
+        errorMessage = 'AI service is temporarily unavailable. Please try again.'
+      }
+
       throw new ApiFetchError(
         errorMessage,
         response.status,
@@ -70,11 +89,15 @@ async function apiRequest<T>(
     const data: T = await response.json()
     return { data, latencyMs }
   } catch (err: unknown) {
+    clearTimeout(timeoutId)
     if (err instanceof ApiFetchError) {
       throw err
     }
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiFetchError('Request timed out waiting for AI response. Please try again.', 504)
+    }
     const message = err instanceof Error ? err.message : 'Unknown network failure'
-    throw new ApiFetchError(`Network error while fetching ${endpoint}: ${message}`)
+    throw new ApiFetchError(`AI service is temporarily unavailable. Please try again. (${message})`)
   }
 }
 

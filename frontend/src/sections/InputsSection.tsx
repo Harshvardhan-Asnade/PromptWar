@@ -12,12 +12,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * 03 / YOUR CONSTRAINTS
  */
 export const InputsSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     gsap.from('.input-editorial-block', {
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 75%',
       },
       y: 45,

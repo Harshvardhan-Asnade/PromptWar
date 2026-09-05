@@ -6,7 +6,7 @@ import { gsap } from '../lib/motion'
  * Automatically reverts all GSAP animations on unmount.
  */
 export function useGsapContext(
-  callback: (ctx: gsap.Context) => void,
+  callback: (ctx: gsap.Context, container: HTMLDivElement) => void,
   deps: React.DependencyList = []
 ) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -14,9 +14,10 @@ export function useGsapContext(
   useEffect(() => {
     if (!containerRef.current) return
 
+    const container = containerRef.current
     const ctx = gsap.context((self) => {
-      callback(self as unknown as gsap.Context)
-    }, containerRef.current)
+      callback(self as unknown as gsap.Context, container)
+    }, container)
 
     return () => ctx.revert()
     // eslint-disable-next-line react-hooks/exhaustive-deps

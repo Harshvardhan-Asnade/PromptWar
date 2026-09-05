@@ -6,7 +6,7 @@ export function useApiHealth() {
   const [state, setState] = useState<ApiResponse<HealthResponse>>({
     data: null,
     error: null,
-    status: 'idle',
+    status: 'loading',
     latencyMs: undefined,
   })
 
@@ -33,8 +33,23 @@ export function useApiHealth() {
   }, [])
 
   useEffect(() => {
-    checkHealth()
-  }, [checkHealth])
+    let active = true
+
+    fetchHealth()
+      .then(({ data, latencyMs }) => {
+        if (!active) return
+        setState({ data, error: null, status: 'success', latencyMs })
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        const message = err instanceof Error ? err.message : 'Failed to reach API health check'
+        setState({ data: null, error: { message }, status: 'error', latencyMs: undefined })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return {
     ...state,

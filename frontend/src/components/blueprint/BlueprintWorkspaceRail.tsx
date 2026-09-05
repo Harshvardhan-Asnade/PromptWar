@@ -6,7 +6,7 @@ export interface BlueprintSectionAnchor {
   num: string
 }
 
-export const BLUEPRINT_SECTIONS: BlueprintSectionAnchor[] = [
+const BLUEPRINT_SECTIONS: BlueprintSectionAnchor[] = [
   { id: 'problem', label: 'PROBLEM', num: '01' },
   { id: 'solution', label: 'SOLUTION', num: '02' },
   { id: 'capabilities', label: 'SYSTEM', num: '03' },

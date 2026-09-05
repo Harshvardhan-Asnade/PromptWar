@@ -84,7 +84,7 @@ export const BlueprintPage: React.FC = () => {
       </div>
 
       {/* Main Blueprint Editorial & Engineering Workbench Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Blueprint Hero Section */}
         <BlueprintHero project={project} index={currentIndex} />
 

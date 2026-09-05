@@ -66,13 +66,14 @@ export const AIThinkingAnimation: React.FC<AIThinkingAnimationProps> = ({
 
   return (
     <div
-      role="status"
-      aria-live="polite"
-      aria-label={`${badgeText}: ${activeStep?.label || title}`}
       className={`relative overflow-hidden border border-[#E4E2DC] bg-white rounded-3xl text-center select-none shadow-[0_4px_24px_rgba(0,0,0,0.03)] ${
         compact ? 'p-6 max-w-xl mx-auto' : 'my-8 py-12 px-6 sm:px-12 max-w-2xl mx-auto'
       } ${className}`}
     >
+      {/* Screen-reader status announcement: calm and high-level without decorative noise (Phase E8) */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {title}. Current stage: {activeStep?.label || 'Processing'}.
+      </div>
       {/* Top accent progress track */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-[#E4E2DC]/70" aria-hidden="true">
         <div

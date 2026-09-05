@@ -159,7 +159,7 @@ export const ResultsPage: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12">
         {/* If no projects exist (e.g. direct refresh or no generation yet) */}
         {!projects || projects.length === 0 ? (
           <div className="bg-white border border-[#E4E2DC] rounded-3xl p-10 sm:p-14 text-center max-w-lg mx-auto shadow-sm my-16">

@@ -14,7 +14,7 @@ export const DeliverySequenceSection: React.FC = () => {
   const horizontalTrackRef = useRef<HTMLDivElement>(null)
   const pinContainerRef = useRef<HTMLDivElement>(null)
 
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
     if (typeof window !== 'undefined' && window.innerWidth < 1024) return
     if (!horizontalTrackRef.current || !pinContainerRef.current) return
@@ -26,7 +26,7 @@ export const DeliverySequenceSection: React.FC = () => {
       x: -totalScroll,
       ease: 'none',
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top top',
         end: () => `+=${totalScroll}`,
         pin: pinContainerRef.current,

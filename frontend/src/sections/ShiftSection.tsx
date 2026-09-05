@@ -9,12 +9,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * Transforming scattered input factors into singular engineering clarity.
  */
 export const ShiftSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     gsap.from('.shift-factor', {
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 75%',
       },
       y: 35,

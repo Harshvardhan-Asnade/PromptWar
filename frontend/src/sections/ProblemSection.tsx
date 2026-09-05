@@ -11,12 +11,12 @@ import { gsap, prefersReducedMotion } from '../lib/motion'
  * -> "Finding the right project shouldn't feel this hard."
  */
 export const ProblemSection: React.FC = () => {
-  const containerRef = useGsapContext(() => {
+  const containerRef = useGsapContext((_, container) => {
     if (prefersReducedMotion()) return
 
     gsap.from('.problem-row', {
       scrollTrigger: {
-        trigger: containerRef.current,
+        trigger: container,
         start: 'top 75%',
       },
       y: 40,

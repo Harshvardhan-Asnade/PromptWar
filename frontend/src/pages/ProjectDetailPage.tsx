@@ -112,7 +112,7 @@ export const ProjectDetailPage: React.FC = () => {
       <ProjectWorkspaceNav activeStage="overview" />
 
       {/* Main Container with De-Cardified Editorial Rhythm (Improvement 07) */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14">
+      <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14">
         {/* Top Direction Badge & Category */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2">

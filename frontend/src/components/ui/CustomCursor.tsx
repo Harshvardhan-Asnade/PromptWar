@@ -8,16 +8,15 @@ export const CustomCursor: React.FC = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const [isHovered, setIsHovered] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
-  const [isEnabled, setIsEnabled] = useState(false)
-
-  useEffect(() => {
-    // Only enable on fine pointer devices (mouse/trackpad, not touch)
-    if (typeof window === 'undefined') return
+  const [isEnabled] = useState(() => {
+    if (typeof window === 'undefined') return false
     const isFinePointer = window.matchMedia('(pointer: fine)').matches
     const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    return isFinePointer && !isReduced
+  })
 
-    if (!isFinePointer || isReduced) return
-    setIsEnabled(true)
+  useEffect(() => {
+    if (!isEnabled) return
 
     const onMouseMove = (e: MouseEvent) => {
       if (!cursorRef.current) return
@@ -53,7 +52,7 @@ export const CustomCursor: React.FC = () => {
       document.removeEventListener('mouseenter', onMouseEnter)
       window.removeEventListener('mouseover', onOver)
     }
-  }, [])
+  }, [isEnabled])
 
   if (!isEnabled) return null
 

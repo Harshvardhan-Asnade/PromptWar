@@ -12,11 +12,16 @@ export const MentorQuestionInput: React.FC<MentorQuestionInputProps> = ({
   initialQuestion = '',
 }) => {
   const [value, setValue] = useState(initialQuestion)
+  const [prevInitial, setPrevInitial] = useState(initialQuestion)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  if (initialQuestion !== prevInitial) {
+    setPrevInitial(initialQuestion)
+    setValue(initialQuestion)
+  }
 
   useEffect(() => {
     if (initialQuestion) {
-      setValue(initialQuestion)
       textareaRef.current?.focus()
     }
   }, [initialQuestion])

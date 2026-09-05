@@ -29,6 +29,11 @@ _request_timestamps: dict[str, list[float]] = defaultdict(list)
 MAX_REQUEST_BODY_BYTES = 524_288  # 512 KB
 
 
+def reset_rate_limiter():
+    """Reset the rate limiter cache for test isolation."""
+    _request_timestamps.clear()
+
+
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
     # 1. Request Body Size Guard
@@ -39,10 +44,15 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             content={"detail": {"message": "Payload too large. Request body cannot exceed 512 KB."}},
         )
 
-    # 2. Rate Limiting for AI endpoints
+    # 2. Rate Limiting for AI endpoints with reverse-proxy (Render) IP support
     path = request.url.path
     if path.startswith("/api/projects") or path.startswith("/api/mentor"):
-        client_ip = request.client.host if request.client else "unknown"
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = (
+            forwarded.split(",")[0].strip()
+            if forwarded
+            else (request.client.host if request.client else "unknown")
+        )
         now = time.time()
         timestamps = _request_timestamps[client_ip]
 
@@ -72,6 +82,11 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; frame-ancestors 'none';"
+
+    # Enforce HSTS if HTTPS
+    if request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     return response
 
@@ -81,8 +96,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
 )
 
 # Register routers

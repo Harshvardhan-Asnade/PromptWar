@@ -82,6 +82,7 @@ export const Button: React.FC<ButtonProps> = ({
   const isLink = variant === 'link'
 
   const Tag = href ? 'a' : Component
+  const buttonProps = Tag === 'button' ? { disabled: disabled || loading } : {}
 
   return (
     <Tag
@@ -95,8 +96,8 @@ export const Button: React.FC<ButtonProps> = ({
         isIcon ? iconSizeStyles[size] : isLink ? '' : sizeStyles[size],
         className,
       ].join(' ')}
-      disabled={Tag === 'button' ? disabled || loading : undefined}
-      {...(props as any)}
+      {...buttonProps}
+      {...props}
     >
       {loading ? (
         <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
