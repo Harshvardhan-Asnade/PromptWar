@@ -1,4 +1,5 @@
 import type { HealthResponse } from '../types/api'
+import type { StudentProfile, GenerateProjectsResponse } from '../types/discovery'
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL?.trim() || 'http://localhost:8000'
@@ -78,5 +79,18 @@ export async function fetchHealth(): Promise<{
 }> {
   return apiRequest<HealthResponse>('/api/health', {
     method: 'GET',
+  })
+}
+
+/**
+ * Send student profile to generate 3 tailored project blueprints
+ */
+export async function generateProjects(profile: StudentProfile): Promise<{
+  data: GenerateProjectsResponse
+  latencyMs: number
+}> {
+  return apiRequest<GenerateProjectsResponse>('/api/projects/generate', {
+    method: 'POST',
+    body: JSON.stringify(profile),
   })
 }
