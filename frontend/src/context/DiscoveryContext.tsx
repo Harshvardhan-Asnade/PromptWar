@@ -1,8 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import type { StudentProfile, ProjectIdea, GenerationStatus } from '../types/discovery'
-import { generateProjects } from '../lib/api'
+import type {
+  StudentProfile,
+  ProjectIdea,
+  GenerationStatus,
+  ProjectEvaluation,
+} from '../types/discovery'
+import { generateProjects, evaluateProject } from '../lib/api'
 
-export type AppRoute = 'landing' | 'discovery' | 'results' | 'project-detail' | 'blueprint'
+export type AppRoute =
+  | 'landing'
+  | 'discovery'
+  | 'results'
+  | 'project-detail'
+  | 'blueprint'
+  | 'review'
+  | 'improve'
 
 interface DiscoveryContextType {
   profile: StudentProfile
@@ -24,6 +36,12 @@ interface DiscoveryContextType {
   errorMessage: string | null
   triggerGeneration: () => Promise<void>
   resetDiscovery: () => void
+  evaluation: ProjectEvaluation | null
+  isEvaluating: boolean
+  evaluationStep: number
+  evaluationError: string | null
+  runEvaluation: (forceRefresh?: boolean) => Promise<void>
+  clearEvaluation: () => void
 }
 
 const defaultProfile: StudentProfile = {
@@ -48,11 +66,21 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [generationStep, setGenerationStep] = useState<number>(0)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Phase 7: Evaluation state
+  const [evaluation, setEvaluation] = useState<ProjectEvaluation | null>(null)
+  const [isEvaluating, setIsEvaluating] = useState<boolean>(false)
+  const [evaluationStep, setEvaluationStep] = useState<number>(0)
+  const [evaluationError, setEvaluationError] = useState<string | null>(null)
+
   // Synchronize route with URL hash
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase()
-      if (hash.includes('blueprint')) {
+      if (hash.includes('improve')) {
+        setCurrentRoute('improve')
+      } else if (hash.includes('review')) {
+        setCurrentRoute('review')
+      } else if (hash.includes('blueprint')) {
         setCurrentRoute('blueprint')
       } else if (hash.includes('project-detail')) {
         setCurrentRoute('project-detail')
@@ -72,7 +100,13 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const navigateTo = useCallback((route: AppRoute) => {
     setCurrentRoute(route)
-    if (route === 'blueprint') {
+    if (route === 'improve') {
+      window.location.hash = 'improve'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else if (route === 'review') {
+      window.location.hash = 'review'
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else if (route === 'blueprint') {
       window.location.hash = 'blueprint'
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (route === 'project-detail') {
@@ -92,11 +126,15 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const selectProject = useCallback((project: ProjectIdea) => {
     setSelectedProject(project)
+    setEvaluation(null)
+    setEvaluationError(null)
     navigateTo('project-detail')
   }, [navigateTo])
 
   const clearSelectedProject = useCallback(() => {
     setSelectedProject(null)
+    setEvaluation(null)
+    setEvaluationError(null)
     navigateTo('results')
   }, [navigateTo])
 
@@ -185,6 +223,69 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [profile, navigateTo])
 
+  const clearEvaluation = useCallback(() => {
+    setEvaluation(null)
+    setEvaluationError(null)
+    setIsEvaluating(false)
+    setEvaluationStep(0)
+  }, [])
+
+  const runEvaluation = useCallback(
+    async (forceRefresh = false) => {
+      if (!selectedProject) {
+        setEvaluationError('No project selected to evaluate.')
+        return
+      }
+
+      if (evaluation && !forceRefresh) {
+        return
+      }
+
+      setIsEvaluating(true)
+      setEvaluationError(null)
+      setEvaluationStep(0)
+
+      // 5-stage high level progression:
+      // 0: CHECKING PROJECT SCOPE
+      // 1: CHECKING FEASIBILITY
+      // 2: ASSESSING TECHNICAL DEPTH
+      // 3: CHECKING ALIGNMENT
+      // 4: PREPARING RECOMMENDATIONS
+      const stepTimers = [
+        setTimeout(() => setEvaluationStep(1), 500),
+        setTimeout(() => setEvaluationStep(2), 1100),
+        setTimeout(() => setEvaluationStep(3), 1700),
+        setTimeout(() => setEvaluationStep(4), 2300),
+      ]
+
+      try {
+        const studentContext: StudentProfile = {
+          interests: profile.interests.length > 0 ? profile.interests : ['AI / ML'],
+          skills: profile.skills.length > 0 ? profile.skills : ['Python'],
+          experience: profile.experience || 'intermediate',
+          team_size: Math.max(1, profile.team_size || 3),
+          duration: profile.duration || '8 weeks',
+          difficulty: profile.difficulty || 'balanced',
+          domain: profile.domain || profile.interests[0] || 'AI / ML',
+        }
+
+        const { data } = await evaluateProject(selectedProject, studentContext)
+        stepTimers.forEach(clearTimeout)
+        setEvaluation(data)
+        setIsEvaluating(false)
+      } catch (err: unknown) {
+        stepTimers.forEach(clearTimeout)
+        const msg =
+          err instanceof Error
+            ? err.message
+            : "We couldn't complete the project audit right now."
+        setEvaluationError(msg)
+        setIsEvaluating(false)
+      }
+    },
+    [selectedProject, profile, evaluation]
+  )
+
   return (
     <DiscoveryContext.Provider
       value={{
@@ -207,6 +308,12 @@ export const DiscoveryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         errorMessage,
         triggerGeneration,
         resetDiscovery,
+        evaluation,
+        isEvaluating,
+        evaluationStep,
+        evaluationError,
+        runEvaluation,
+        clearEvaluation,
       }}
     >
       {children}

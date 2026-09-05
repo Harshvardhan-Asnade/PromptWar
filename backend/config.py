@@ -27,6 +27,18 @@ class Settings:
         ).rstrip("/")
         self.AI_MODEL: str = os.getenv("AI_MODEL", "gemini-2.5-flash").strip()
         self.AI_TIMEOUT_SECONDS: float = float(os.getenv("AI_TIMEOUT_SECONDS", "45.0"))
+        
+        # CORS configuration
+        origins_env = os.getenv("ALLOWED_ORIGINS", "")
+        if origins_env:
+            self.ALLOWED_ORIGINS: list[str] = [
+                origin.strip() for origin in origins_env.split(",") if origin.strip()
+            ]
+        else:
+            self.ALLOWED_ORIGINS: list[str] = [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ]
 
     @property
     def is_mock_mode(self) -> bool:

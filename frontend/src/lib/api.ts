@@ -1,5 +1,10 @@
 import type { HealthResponse } from '../types/api'
-import type { StudentProfile, GenerateProjectsResponse } from '../types/discovery'
+import type {
+  StudentProfile,
+  GenerateProjectsResponse,
+  ProjectIdea,
+  ProjectEvaluation,
+} from '../types/discovery'
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL?.trim() || 'http://localhost:8000'
@@ -92,5 +97,24 @@ export async function generateProjects(profile: StudentProfile): Promise<{
   return apiRequest<GenerateProjectsResponse>('/api/projects/generate', {
     method: 'POST',
     body: JSON.stringify(profile),
+  })
+}
+
+/**
+ * Evaluate a selected project blueprint against student constraints
+ */
+export async function evaluateProject(
+  project: ProjectIdea,
+  studentContext: StudentProfile
+): Promise<{
+  data: ProjectEvaluation
+  latencyMs: number
+}> {
+  return apiRequest<ProjectEvaluation>('/api/projects/evaluate', {
+    method: 'POST',
+    body: JSON.stringify({
+      project,
+      student_context: studentContext,
+    }),
   })
 }

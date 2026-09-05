@@ -36,4 +36,18 @@ export interface GenerateProjectsResponse {
   projects: ProjectIdea[]
 }
 
+export interface ProjectEvaluation {
+  innovation_score: number
+  feasibility_score: number
+  impact_score: number
+  technical_depth_score: number
+  uniqueness_score: number
+  scope_score: number
+  overall_score: number
+  strengths: string[]
+  weaknesses: string[]
+  risks: string[]
+  recommendations: string[]
+}
+
 export type GenerationStatus = 'idle' | 'generating' | 'success' | 'error'
