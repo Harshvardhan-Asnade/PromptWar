@@ -87,6 +87,15 @@ export const BlueprintNav: React.FC = () => {
             >
               BUILD ORDER ↓
             </button>
+
+            <button
+              type="button"
+              onClick={() => navigateTo('mentor')}
+              className="px-3 sm:px-4 py-2 rounded-xl bg-[#FFF0E9] hover:bg-[#FF5A1F] text-[#FF5A1F] hover:text-white border border-[#FF5A1F]/30 font-mono text-xs uppercase tracking-wider font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <span>AI MENTOR</span>
+              <span aria-hidden="true">↗</span>
+            </button>
           </div>
         </div>
 

@@ -6,41 +6,48 @@ class GenerateProjectsRequest(BaseModel):
     interests: List[str] = Field(
         ...,
         min_length=1,
+        max_length=15,
         description="List of student interest domains (e.g. AI/ML, Healthcare, FinTech).",
         examples=[["AI/ML", "Healthcare"]],
     )
     skills: List[str] = Field(
         ...,
         min_length=1,
+        max_length=20,
         description="Technical skills possessed by the student/team (e.g. Python, React, PyTorch).",
         examples=[["Python", "React", "Machine Learning"]],
     )
     experience: str = Field(
         ...,
         min_length=1,
+        max_length=50,
         description="Experience level: beginner, intermediate, advanced.",
         examples=["intermediate"],
     )
     team_size: int = Field(
         ...,
         ge=1,
-        description="Number of team members executing the project.",
+        le=20,
+        description="Number of team members executing the project (1 to 20).",
         examples=[3],
     )
     duration: str = Field(
         ...,
         min_length=1,
+        max_length=50,
         description="Available timeline for development (e.g. 8 weeks, 3 months).",
         examples=["8 weeks"],
     )
     difficulty: str = Field(
         ...,
         min_length=1,
+        max_length=50,
         description="Preferred challenge tier: safe, balanced, challenging, research-oriented.",
         examples=["balanced"],
     )
     domain: Optional[str] = Field(
         default=None,
+        max_length=100,
         description="Optional preferred primary industry or academic domain.",
         examples=["Healthcare"],
     )
@@ -48,7 +55,7 @@ class GenerateProjectsRequest(BaseModel):
     @field_validator("interests", "skills")
     @classmethod
     def validate_non_empty_items(cls, values: List[str]) -> List[str]:
-        cleaned = [item.strip() for item in values if item and item.strip()]
+        cleaned = [item.strip()[:60] for item in values if item and item.strip()]
         if not cleaned:
             raise ValueError("List must contain at least one non-empty string.")
         return cleaned

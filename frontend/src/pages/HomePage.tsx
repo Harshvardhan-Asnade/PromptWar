@@ -3,19 +3,17 @@ import { Navigation, SiteFooter } from '../components/layout'
 import { CustomCursor } from '../components/ui'
 import {
   HeroSection,
-  QuestionSection,
-  ProblemSection,
-  InputsSection,
-  ForgeConvergenceSection,
-  PromiseSection,
-  DeliverySequenceSection,
-  StartBuildingSection,
+  CompactProblemSection,
+  HowItWorksSection,
+  ShowcaseSection,
+  CompactCtaSection,
   DesignSystemShowcase,
 } from '../sections'
 
 /**
- * PROJECT FORGE — LIGHT EDITORIAL LANDING EXPERIENCE
+ * PROJECT FORGE — REFINED 5-SECTION EDITORIAL LANDING EXPERIENCE
  * Warm white (#F7F6F2) + Crisp Black Typography (#111111) + Signature Orange (#FF5A1F).
+ * Reduced to 5 concise sections with selective React Bits components.
  */
 export const HomePage: React.FC = () => {
   const [showDesignSystem, setShowDesignSystem] = useState(false)
@@ -29,29 +27,20 @@ export const HomePage: React.FC = () => {
       <Navigation />
 
       <main>
-        {/* HERO — EDITORIAL OPENING */}
+        {/* 01 — HERO */}
         <HeroSection />
 
-        {/* 01 — THE QUESTION */}
-        <QuestionSection />
-
         {/* 02 — THE PROBLEM */}
-        <ProblemSection />
+        <CompactProblemSection />
 
-        {/* 03 — THE INPUTS */}
-        <InputsSection />
+        {/* 03 — HOW IT WORKS */}
+        <HowItWorksSection />
 
-        {/* 04 — THE FORGE (PINNED CONVERGENCE) */}
-        <ForgeConvergenceSection />
+        {/* 04 — PROJECT SHOWCASE */}
+        <ShowcaseSection />
 
-        {/* 05 — THE PROMISE */}
-        <PromiseSection />
-
-        {/* 06 — WHAT PROJECT FORGE DELIVERS (HORIZONTAL SEQUENCE) */}
-        <DeliverySequenceSection />
-
-        {/* 07 — FINAL CTA & PHASE 4 DISCOVERY GATEWAY */}
-        <StartBuildingSection />
+        {/* 05 — FINAL CTA */}
+        <CompactCtaSection />
 
         {/* Collapsible Component Spec Drawer (Dev Tooling) */}
         <section id="design-system" className="border-t border-border bg-surface py-8">

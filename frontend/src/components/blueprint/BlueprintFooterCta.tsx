@@ -35,11 +35,7 @@ export const BlueprintFooterCta: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => {
-              alert(
-                'AI Technical Mentor:\nReal-time architecture consulting and viva preparation will unlock in Phase 7.'
-              )
-            }}
+            onClick={() => navigateTo('mentor')}
             className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-mono text-xs uppercase tracking-widest rounded-2xl transition-all cursor-pointer"
           >
             ASK YOUR MENTOR →

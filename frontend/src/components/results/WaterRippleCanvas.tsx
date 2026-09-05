@@ -152,6 +152,11 @@ export const WaterRippleCanvas: React.FC<WaterRippleCanvasProps> = ({
 
     const handlePointerLeave = () => {
       isHoveredRef.current = false
+      // Accelerate graceful dissipation so ripples settle smoothly
+      for (const r of ripplesRef.current) {
+        r.opacity *= 0.65
+        r.speed *= 0.7
+      }
     }
 
     const handleTouchStart = (e: TouchEvent) => {

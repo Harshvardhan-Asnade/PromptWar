@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from .project import GenerateProjectsRequest, ProjectIdea
 
 
@@ -10,8 +10,17 @@ class ImproveProjectRequest(BaseModel):
     )
     focus_areas: Optional[List[str]] = Field(
         default=None,
-        description="Optional priority domains for improvement (e.g. ['architecture', 'scalability', 'innovation']).",
+        max_length=10,
+        description="Optional priority domains for improvement (max 10 items, e.g. ['architecture', 'scalability']).",
     )
+
+    @field_validator("focus_areas")
+    @classmethod
+    def validate_focus_areas(cls, values: Optional[List[str]]) -> Optional[List[str]]:
+        if values is None:
+            return None
+        cleaned = [item.strip()[:60] for item in values if item and item.strip()]
+        return cleaned[:10]
 
 
 class ImproveProjectResponse(BaseModel):

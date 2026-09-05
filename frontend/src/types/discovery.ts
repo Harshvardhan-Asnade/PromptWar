@@ -50,4 +50,30 @@ export interface ProjectEvaluation {
   recommendations: string[]
 }
 
+export interface ImproveProjectResponse {
+  improved_project: ProjectIdea
+  summary_of_changes: string
+  feature_improvements: string[]
+  technical_improvements: string[]
+  architecture_improvements: string[]
+  innovation_opportunities: string[]
+  scope_adjustments: string[]
+  scalability_improvements: string[]
+}
+
+export interface MentorResponse {
+  answer: string
+  recommended_next_action: string
+  key_takeaways: string[]
+  relevant_risks: string[]
+}
+
+export interface MentorMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content?: string
+  response?: MentorResponse
+  timestamp: number
+}
+
 export type GenerationStatus = 'idle' | 'generating' | 'success' | 'error'

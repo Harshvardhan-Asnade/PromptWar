@@ -4,6 +4,8 @@ import type {
   GenerateProjectsResponse,
   ProjectIdea,
   ProjectEvaluation,
+  ImproveProjectResponse,
+  MentorResponse,
 } from '../types/discovery'
 
 export const API_BASE_URL =
@@ -24,76 +26,73 @@ export class ApiFetchError extends Error {
 /**
  * Universal fetch wrapper for Project Forge API
  */
-export async function apiRequest<T>(
-  path: string,
+async function apiRequest<T>(
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<{ data: T; latencyMs: number }> {
-  const cleanPath = path.startsWith('/') ? path : `/${path}`
-  const url = `${API_BASE_URL}${cleanPath}`
-
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-    ...options.headers,
-  }
-
+  const url = `${API_BASE_URL.replace(/\/$/, '')}${endpoint}`
   const startTime = performance.now()
 
   try {
     const response = await fetch(url, {
       ...options,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
     })
 
     const latencyMs = Math.round(performance.now() - startTime)
 
     if (!response.ok) {
-      let errorDetail: unknown
+      let errorMessage = `HTTP Error ${response.status} from ${endpoint}`
+      let errorDetail: unknown = null
+
       try {
-        errorDetail = await response.json()
+        const errorJson = await response.json()
+        errorDetail = errorJson
+        if (errorJson.detail?.message) {
+          errorMessage = errorJson.detail.message
+        } else if (typeof errorJson.detail === 'string') {
+          errorMessage = errorJson.detail
+        }
       } catch {
-        errorDetail = await response.text()
+        // Response was not JSON
       }
+
       throw new ApiFetchError(
-        `API request failed: ${response.status} ${response.statusText}`,
+        errorMessage,
         response.status,
         errorDetail
       )
     }
 
-    const data = (await response.json()) as T
+    const data: T = await response.json()
     return { data, latencyMs }
-  } catch (error) {
-    if (error instanceof ApiFetchError) {
-      throw error
+  } catch (err: unknown) {
+    if (err instanceof ApiFetchError) {
+      throw err
     }
-    const message =
-      error instanceof Error ? error.message : 'Unknown network error'
-    throw new ApiFetchError(
-      `Failed to connect to backend at ${url}. Ensure FastAPI is running. (${message})`
-    )
+    const message = err instanceof Error ? err.message : 'Unknown network failure'
+    throw new ApiFetchError(`Network error while fetching ${endpoint}: ${message}`)
   }
 }
 
 /**
- * Query the backend health check endpoint
+ * Health check ping
  */
-export async function fetchHealth(): Promise<{
-  data: HealthResponse
-  latencyMs: number
-}> {
-  return apiRequest<HealthResponse>('/api/health', {
-    method: 'GET',
-  })
+export async function getHealth(): Promise<{ data: HealthResponse; latencyMs: number }> {
+  return apiRequest<HealthResponse>('/api/health')
 }
 
+export const fetchHealth = getHealth
+
 /**
- * Send student profile to generate 3 tailored project blueprints
+ * Generate 3 high-impact project blueprints matching student profile
  */
-export async function generateProjects(profile: StudentProfile): Promise<{
-  data: GenerateProjectsResponse
-  latencyMs: number
-}> {
+export async function generateProjects(
+  profile: StudentProfile
+): Promise<{ data: GenerateProjectsResponse; latencyMs: number }> {
   return apiRequest<GenerateProjectsResponse>('/api/projects/generate', {
     method: 'POST',
     body: JSON.stringify(profile),
@@ -101,7 +100,7 @@ export async function generateProjects(profile: StudentProfile): Promise<{
 }
 
 /**
- * Evaluate a selected project blueprint against student constraints
+ * Evaluate technical feasibility and alignment of a selected project
  */
 export async function evaluateProject(
   project: ProjectIdea,
@@ -115,6 +114,48 @@ export async function evaluateProject(
     body: JSON.stringify({
       project,
       student_context: studentContext,
+    }),
+  })
+}
+
+/**
+ * Harden and improve a selected project blueprint based on audit findings
+ */
+export async function improveProject(
+  project: ProjectIdea,
+  studentContext: StudentProfile,
+  focusAreas?: string[]
+): Promise<{
+  data: ImproveProjectResponse
+  latencyMs: number
+}> {
+  return apiRequest<ImproveProjectResponse>('/api/projects/improve', {
+    method: 'POST',
+    body: JSON.stringify({
+      project,
+      student_context: studentContext,
+      focus_areas: focusAreas && focusAreas.length > 0 ? focusAreas : null,
+    }),
+  })
+}
+
+/**
+ * Ask AI Mentor contextual technical guidance for the selected project
+ */
+export async function askMentor(
+  project: ProjectIdea,
+  studentContext: StudentProfile,
+  question: string
+): Promise<{
+  data: MentorResponse
+  latencyMs: number
+}> {
+  return apiRequest<MentorResponse>('/api/mentor', {
+    method: 'POST',
+    body: JSON.stringify({
+      project,
+      student_context: studentContext,
+      question: question.trim(),
     }),
   })
 }

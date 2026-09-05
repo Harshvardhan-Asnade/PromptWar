@@ -8,8 +8,9 @@ class MentorRequest(BaseModel):
     student_context: GenerateProjectsRequest = Field(..., description="Student skills and constraints.")
     question: str = Field(
         ...,
-        min_length=1,
-        description="Specific question directed to the technical mentor.",
+        min_length=3,
+        max_length=1000,
+        description="Specific question directed to the technical mentor (3 to 1000 characters).",
         examples=["How can I make this project more innovative?", "Can our team complete this in 8 weeks?"],
     )
 
@@ -17,8 +18,10 @@ class MentorRequest(BaseModel):
     @classmethod
     def validate_question(cls, val: str) -> str:
         cleaned = val.strip()
-        if not cleaned:
-            raise ValueError("Mentor question cannot be empty.")
+        if len(cleaned) < 3:
+            raise ValueError("Mentor question must be at least 3 characters long.")
+        if len(cleaned) > 1000:
+            raise ValueError("Mentor question cannot exceed 1000 characters.")
         return cleaned
 
 

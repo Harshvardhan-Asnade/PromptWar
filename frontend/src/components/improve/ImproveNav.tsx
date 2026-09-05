@@ -1,7 +1,7 @@
 import React from 'react'
 import { useDiscovery } from '../../context/DiscoveryContext'
 
-export const ReviewNav: React.FC = () => {
+export const ImproveNav: React.FC = () => {
   const { navigateTo, selectedProject } = useDiscovery()
 
   return (
@@ -22,7 +22,7 @@ export const ReviewNav: React.FC = () => {
           </button>
           <span className="text-[#E4E2DC]">/</span>
           <span className="font-mono text-xs text-[#5F5F5A] uppercase tracking-widest hidden sm:inline">
-            AI PROJECT AUDIT
+            AI PROJECT IMPROVEMENT
           </span>
           {selectedProject && (
             <>
@@ -44,14 +44,20 @@ export const ReviewNav: React.FC = () => {
             <span>AI MENTOR</span>
             <span aria-hidden="true">↗</span>
           </button>
-
           <button
             type="button"
-            onClick={() => navigateTo('blueprint')}
+            onClick={() => navigateTo('review')}
             className="px-3 sm:px-4 py-2 rounded-xl border border-[#E4E2DC] hover:border-[#111111] bg-white text-[#111111] font-mono text-xs uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
           >
             <span>←</span>
             <span className="hidden sm:inline">BACK TO</span>
+            <span>AUDIT</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigateTo('blueprint')}
+            className="px-3 sm:px-4 py-2 rounded-xl bg-[#F7F6F2] hover:bg-[#E4E2DC] text-[#111111] font-mono text-xs uppercase tracking-wider transition-colors border border-[#E4E2DC] cursor-pointer"
+          >
             <span>BLUEPRINT</span>
           </button>
         </div>

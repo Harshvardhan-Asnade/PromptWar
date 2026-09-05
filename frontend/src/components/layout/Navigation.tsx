@@ -71,24 +71,31 @@ export const Navigation: React.FC = () => {
           </a>
 
           {/* Desktop Center Links */}
-          <nav className="hidden lg:flex items-center gap-10">
+          <nav className="hidden lg:flex items-center gap-8">
             <a
-              href="#inputs"
+              href="#discovery"
               className="font-mono text-xs uppercase tracking-widest text-fg-secondary hover:text-accent transition-colors"
             >
               DISCOVER
             </a>
             <a
-              href="#forge"
+              href="#how-it-works"
               className="font-mono text-xs uppercase tracking-widest text-fg-secondary hover:text-accent transition-colors"
             >
               HOW IT WORKS
             </a>
             <a
-              href="#delivers"
+              href="#showcase"
               className="font-mono text-xs uppercase tracking-widest text-fg-secondary hover:text-accent transition-colors"
             >
-              MENTOR
+              SHOWCASE
+            </a>
+            <a
+              href="#mentor"
+              className="font-mono text-xs uppercase tracking-widest text-fg-secondary hover:text-accent transition-colors flex items-center gap-1"
+            >
+              <span>AI MENTOR</span>
+              <span className="text-[10px] text-accent font-bold">⚡</span>
             </a>
           </nav>
 
@@ -168,30 +175,37 @@ export const Navigation: React.FC = () => {
         <nav className="flex flex-col gap-8 px-6 pt-28 pb-8">
           <div className="flex flex-col gap-6">
             <a
-              href="#inputs"
+              href="#discovery"
               onClick={() => setMenuOpen(false)}
               className="font-display font-extrabold text-3xl text-fg hover:text-accent transition-colors"
             >
               Discover
             </a>
             <a
-              href="#forge"
+              href="#how-it-works"
               onClick={() => setMenuOpen(false)}
               className="font-display font-extrabold text-3xl text-fg hover:text-accent transition-colors"
             >
               How It Works
             </a>
             <a
-              href="#delivers"
+              href="#showcase"
               onClick={() => setMenuOpen(false)}
               className="font-display font-extrabold text-3xl text-fg hover:text-accent transition-colors"
             >
-              AI Mentor
+              Showcase
+            </a>
+            <a
+              href="#mentor"
+              onClick={() => setMenuOpen(false)}
+              className="font-display font-extrabold text-3xl text-accent hover:underline transition-colors"
+            >
+              AI Mentor ⚡
             </a>
             <a
               href="#discovery"
               onClick={() => setMenuOpen(false)}
-              className="font-display font-extrabold text-3xl text-accent"
+              className="font-display font-extrabold text-3xl text-[#111111]"
             >
               Start Building →
             </a>
