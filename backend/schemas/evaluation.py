@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from .project import GenerateProjectsRequest, ProjectIdea
 
 
@@ -22,3 +22,11 @@ class EvaluateProjectResponse(BaseModel):
     weaknesses: List[str] = Field(..., description="Critical architectural or execution deficiencies.")
     risks: List[str] = Field(..., description="Primary risk factors that could derail delivery.")
     recommendations: List[str] = Field(..., description="Strategic recommendations for project defense & execution.")
+
+    @field_validator("strengths", "weaknesses", "risks", "recommendations", mode="before")
+    @classmethod
+    def coerce_list_of_strings(cls, val):
+        if isinstance(val, str):
+            lines = [line.lstrip("-*• ").strip() for line in val.split("\n") if line.strip()]
+            return lines if lines else [val.strip()]
+        return val

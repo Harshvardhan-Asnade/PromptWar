@@ -39,6 +39,8 @@ export const ForgedSurfaceCanvas: React.FC<ForgedSurfaceCanvasProps> = ({
     let height = 0
     let time = 0
 
+    let cachedGradients: CanvasGradient[] = []
+
     const resize = () => {
       if (!canvas) return
       const rect = canvas.getBoundingClientRect()
@@ -50,6 +52,19 @@ export const ForgedSurfaceCanvas: React.FC<ForgedSurfaceCanvasProps> = ({
       canvas.height = height * dpr
       ctx.setTransform(1, 0, 0, 1, 0, 0)
       ctx.scale(dpr, dpr)
+
+      // Precompute ribbon gradients once on resize instead of every RAF frame (Phase 2.7)
+      cachedGradients = []
+      const ribbons = isMobile ? 3 : 5
+      for (let r = 0; r < ribbons; r++) {
+        const yOffset = height * (0.45 + r * 0.12)
+        const alpha = (0.025 + r * 0.018).toFixed(3)
+        const gradient = ctx.createLinearGradient(0, yOffset - 50, width, height)
+        gradient.addColorStop(0, `rgba(255, 90, 31, ${alpha})`)
+        gradient.addColorStop(0.5, `rgba(255, 140, 70, ${(Number(alpha) * 0.7).toFixed(3)})`)
+        gradient.addColorStop(1, `rgba(247, 246, 242, 0.01)`)
+        cachedGradients.push(gradient)
+      }
     }
 
     resize()
@@ -125,14 +140,8 @@ export const ForgedSurfaceCanvas: React.FC<ForgedSurfaceCanvasProps> = ({
         ctx.lineTo(width, height)
         ctx.closePath()
 
-        // Soft Project Forge orange palette
-        const alpha = (0.025 + r * 0.018).toFixed(3)
-        const gradient = ctx.createLinearGradient(0, yOffset - 50, width, height)
-        gradient.addColorStop(0, `rgba(255, 90, 31, ${alpha})`)
-        gradient.addColorStop(0.5, `rgba(255, 140, 70, ${(Number(alpha) * 0.7).toFixed(3)})`)
-        gradient.addColorStop(1, `rgba(247, 246, 242, 0.01)`)
-
-        ctx.fillStyle = gradient
+        // Use precomputed gradient (0 per-frame heap allocations)
+        ctx.fillStyle = cachedGradients[r] || 'rgba(255, 90, 31, 0.05)'
         ctx.fill()
       }
 

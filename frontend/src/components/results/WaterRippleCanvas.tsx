@@ -96,7 +96,8 @@ export const WaterRippleCanvas: React.FC<WaterRippleCanvasProps> = ({
     const canvas = canvasRef.current
     if (!canvas) return
     const rect = canvas.getBoundingClientRect()
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const isMobile = window.innerWidth < 768
+    const dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.5)
     canvas.width = rect.width * dpr
     canvas.height = rect.height * dpr
     const ctx = canvas.getContext('2d')

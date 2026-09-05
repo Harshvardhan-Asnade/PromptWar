@@ -18,14 +18,25 @@ export const CustomCursor: React.FC = () => {
   useEffect(() => {
     if (!isEnabled) return
 
+    let isCurrentlyVisible = false
+
     const onMouseMove = (e: MouseEvent) => {
       if (!cursorRef.current) return
-      setIsVisible(true)
+      if (!isCurrentlyVisible) {
+        isCurrentlyVisible = true
+        setIsVisible(true)
+      }
       cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`
     }
 
-    const onMouseLeave = () => setIsVisible(false)
-    const onMouseEnter = () => setIsVisible(true)
+    const onMouseLeave = () => {
+      isCurrentlyVisible = false
+      setIsVisible(false)
+    }
+    const onMouseEnter = () => {
+      isCurrentlyVisible = true
+      setIsVisible(true)
+    }
 
     const onOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null

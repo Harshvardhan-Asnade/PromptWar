@@ -318,8 +318,8 @@ async def evaluate_project(request: EvaluateProjectRequest) -> EvaluateProjectRe
 
     user_prompt = (
         "<STUDENT_INPUT_DATA>\n"
-        f"Project to Evaluate:\n{request.project.model_dump_json(indent=2)}\n\n"
-        f"Student Team Constraints:\n{request.student_context.model_dump_json(indent=2)}\n"
+        f"Project to Evaluate:\n{request.project.model_dump_json()}\n\n"
+        f"Student Team Constraints:\n{request.student_context.model_dump_json()}\n"
         "</STUDENT_INPUT_DATA>\n\n"
         f"Evaluate critically and output structured JSON."
     )
@@ -368,8 +368,8 @@ async def improve_project(request: ImproveProjectRequest) -> ImproveProjectRespo
 
     user_prompt = (
         "<STUDENT_INPUT_DATA>\n"
-        f"Original Project:\n{request.project.model_dump_json(indent=2)}\n\n"
-        f"Student Constraints:\n{request.student_context.model_dump_json(indent=2)}\n\n"
+        f"Original Project:\n{request.project.model_dump_json()}\n\n"
+        f"Student Constraints:\n{request.student_context.model_dump_json()}\n\n"
         f"Priority Focus Areas: {', '.join(request.focus_areas or ['general', 'architecture', 'scope'])}\n"
         "</STUDENT_INPUT_DATA>\n\n"
         f"Generate the improved specification and output structured JSON."
@@ -411,8 +411,8 @@ async def ask_mentor(request: MentorRequest) -> MentorResponse:
 
     user_prompt = (
         "<STUDENT_INPUT_DATA>\n"
-        f"Project Context:\n{request.project.model_dump_json(indent=2)}\n\n"
-        f"Student Constraints:\n{request.student_context.model_dump_json(indent=2)}\n\n"
+        f"Project Context:\n{request.project.model_dump_json()}\n\n"
+        f"Student Constraints:\n{request.student_context.model_dump_json()}\n\n"
         f"Student's Question:\n{request.question}\n"
         "</STUDENT_INPUT_DATA>\n\n"
         f"Provide targeted mentorship guidance in structured JSON."

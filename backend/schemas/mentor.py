@@ -34,3 +34,11 @@ class MentorResponse(BaseModel):
     relevant_risks: List[str] = Field(
         default_factory=list, description="Project risks pertinent to the student's question."
     )
+
+    @field_validator("key_takeaways", "relevant_risks", mode="before")
+    @classmethod
+    def coerce_list_of_strings(cls, val):
+        if isinstance(val, str):
+            lines = [line.lstrip("-*• ").strip() for line in val.split("\n") if line.strip()]
+            return lines if lines else [val.strip()]
+        return val
