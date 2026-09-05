@@ -1,5 +1,6 @@
 export { BlueprintNav } from './BlueprintNav'
 export { BlueprintHero } from './BlueprintHero'
+export { BlueprintWorkspaceRail } from './BlueprintWorkspaceRail'
 export { ProblemSolutionSection } from './ProblemSolutionSection'
 export { CapabilitiesSection } from './CapabilitiesSection'
 export { TechStackSection } from './TechStackSection'

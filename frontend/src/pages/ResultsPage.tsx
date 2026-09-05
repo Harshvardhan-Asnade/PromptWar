@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { gsap } from 'gsap'
 import { useDiscovery } from '../context/DiscoveryContext'
 import {
@@ -11,7 +11,6 @@ import { prefersReducedMotion } from '../lib/motion'
 export const ResultsPage: React.FC = () => {
   const { projects, selectProject, navigateTo, setStep, profile } = useDiscovery()
   const [activeDimension, setActiveDimension] = useState<ComparisonDimension>('all')
-  const [currentSlide, setCurrentSlide] = useState<number>(0)
 
   // DOM Refs for GSAP Animation Stagger
   const labelRef = useRef<HTMLDivElement>(null)
@@ -19,12 +18,38 @@ export const ResultsPage: React.FC = () => {
   const subtextRef = useRef<HTMLParagraphElement>(null)
   const comparisonRef = useRef<HTMLDivElement>(null)
   const cardsContainerRef = useRef<HTMLDivElement>(null)
-  const horizontalTrackRef = useRef<HTMLDivElement>(null)
 
   // SEO document title
   useEffect(() => {
     document.title = 'Project Forge — 3 AI Project Directions'
   }, [])
+
+  // Identify the Primary Featured Project (highest composite strength)
+  const featuredIndex = useMemo(() => {
+    if (!projects || projects.length === 0) return 0
+    let bestIdx = 0
+    let highestScore = -1
+    projects.forEach((p, idx) => {
+      const score =
+        (p.innovation_score +
+          p.feasibility_score +
+          p.impact_score +
+          p.technical_depth_score) /
+        4
+      if (score > highestScore) {
+        highestScore = score
+        bestIdx = idx
+      }
+    })
+    return bestIdx
+  }, [projects])
+
+  // Supporting alternative projects
+  const alternativeProjects = useMemo(() => {
+    return projects
+      .map((p, originalIndex) => ({ project: p, originalIndex }))
+      .filter((item) => item.originalIndex !== featuredIndex)
+  }, [projects, featuredIndex])
 
   // Staggered Entrance Reveal
   useEffect(() => {
@@ -67,18 +92,6 @@ export const ResultsPage: React.FC = () => {
       )
   }, [projects])
 
-  // Desktop horizontal scroll navigation
-  const scrollToCard = (index: number) => {
-    setCurrentSlide(index)
-    if (horizontalTrackRef.current) {
-      const cardWidth = horizontalTrackRef.current.clientWidth
-      horizontalTrackRef.current.scrollTo({
-        left: index * (cardWidth * 0.82),
-        behavior: 'smooth',
-      })
-    }
-  }
-
   // Determine standout badge for each card based on dimension leaders
   const getStandoutBadge = (project: (typeof projects)[0]) => {
     const topInnovation = [...projects].sort((a, b) => b.innovation_score - a.innovation_score)[0]
@@ -115,7 +128,7 @@ export const ResultsPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigateTo('landing')}
-              className="group flex items-center gap-2 text-left"
+              className="group flex items-center gap-2 text-left cursor-pointer"
             >
               <div className="w-7 h-7 bg-[#FF5A1F] rounded flex items-center justify-center text-white font-mono font-bold text-xs">
                 PF
@@ -137,7 +150,7 @@ export const ResultsPage: React.FC = () => {
                 setStep(1)
                 navigateTo('discovery')
               }}
-              className="px-4 py-2 rounded-xl border border-[#E4E2DC] hover:border-[#111111] bg-white text-[#111111] font-mono text-xs uppercase tracking-wider transition-colors"
+              className="px-4 py-2 rounded-xl border border-[#E4E2DC] hover:border-[#111111] bg-white text-[#111111] font-mono text-xs uppercase tracking-wider transition-colors cursor-pointer"
             >
               ← ADJUST PROFILE
             </button>
@@ -166,7 +179,7 @@ export const ResultsPage: React.FC = () => {
                 setStep(1)
                 navigateTo('discovery')
               }}
-              className="px-8 py-3.5 bg-[#FF5A1F] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#E04D16] transition-all shadow-sm hover:shadow-md"
+              className="px-8 py-3.5 bg-[#FF5A1F] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#E04D16] transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               ← RETURN TO DISCOVERY
             </button>
@@ -178,7 +191,7 @@ export const ResultsPage: React.FC = () => {
               {/* 1. Page Label */}
               <div ref={labelRef} className="flex items-center gap-3 mb-3">
                 <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0E9] text-[#FF5A1F] font-mono text-xs font-bold uppercase tracking-wider border border-[#FF5A1F]/30">
-                  03 PROJECTS FOUND
+                  03 DIRECTIONS SYNTHESIZED
                 </span>
                 <span className="text-[#E4E2DC]">|</span>
                 <span className="font-mono text-xs text-[#767571] uppercase tracking-widest">
@@ -211,62 +224,74 @@ export const ResultsPage: React.FC = () => {
             </div>
 
             {/* 4. Comparison Strip */}
-            <div ref={comparisonRef}>
+            <div ref={comparisonRef} className="mb-10">
               <ProjectComparisonBar
                 projects={projects}
                 activeDimension={activeDimension}
                 onSelectDimension={setActiveDimension}
-                onFocusProject={scrollToCard}
+                onFocusProject={() => {}}
               />
             </div>
 
-            {/* Desktop Horizontal Navigation Controls */}
-            <div className="hidden lg:flex items-center justify-between mb-4 px-1">
-              <div className="flex items-center gap-2 font-mono text-xs text-[#767571]">
-                <span>DIRECTION</span>
-                <span className="font-bold text-[#111111]">0{currentSlide + 1}</span>
-                <span>/ 03</span>
-              </div>
+            {/* Hierarchical Cards Presentation (Improvement 05):
+                1 Featured Direction prominently on top
+                2 Supporting Alternatives in 2-column grid below */}
+            <div ref={cardsContainerRef} className="space-y-12">
+              {/* PRIMARY FEATURED DIRECTION */}
+              {projects[featuredIndex] && (
+                <div>
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#FF5A1F] animate-pulse" />
+                      <span className="font-mono text-xs font-bold text-[#FF5A1F] uppercase tracking-widest">
+                        FEATURED DIRECTION // HIGHEST ALIGNMENT
+                      </span>
+                    </div>
+                    <span className="font-mono text-[11px] text-[#767571] uppercase tracking-wider hidden sm:inline">
+                      STANDOUT MATCH FOR YOUR PROFILE
+                    </span>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => scrollToCard(Math.max(0, currentSlide - 1))}
-                  disabled={currentSlide === 0}
-                  className="w-9 h-9 rounded-xl border border-[#E4E2DC] hover:border-[#111111] bg-white flex items-center justify-center font-mono text-xs disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                  aria-label="Previous project"
-                >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToCard(Math.min(projects.length - 1, currentSlide + 1))}
-                  disabled={currentSlide === projects.length - 1}
-                  className="w-9 h-9 rounded-xl border border-[#E4E2DC] hover:border-[#111111] bg-white flex items-center justify-center font-mono text-xs disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                  aria-label="Next project"
-                >
-                  →
-                </button>
-              </div>
-            </div>
+                  <ProjectDirectionCard
+                    project={projects[featuredIndex]}
+                    index={featuredIndex}
+                    isFeatured={true}
+                    isHighlighted={isCardHighlighted(projects[featuredIndex])}
+                    standoutBadge={getStandoutBadge(projects[featuredIndex]) || 'MOST INNOVATIVE'}
+                    onSelect={selectProject}
+                  />
+                </div>
+              )}
 
-            {/* Project Directions Display:
-                Desktop: 3-column editorial grid / horizontal track
-                Mobile/Tablet: vertical stacked list with zero horizontal clipping */}
-            <div
-              ref={cardsContainerRef}
-              className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch"
-            >
-              {projects.map((project, idx) => (
-                <ProjectDirectionCard
-                  key={project.id || idx}
-                  project={project}
-                  index={idx}
-                  isHighlighted={isCardHighlighted(project)}
-                  standoutBadge={getStandoutBadge(project)}
-                  onSelect={selectProject}
-                />
-              ))}
+              {/* SUPPORTING ALTERNATIVES (02) */}
+              {alternativeProjects.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between border-b border-[#E4E2DC] pb-3 mb-6 px-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-[#111111] uppercase tracking-wider">
+                        SUPPORTING ALTERNATIVES ({alternativeProjects.length})
+                      </span>
+                    </div>
+                    <span className="font-mono text-[11px] text-[#767571] uppercase tracking-wider">
+                      DIFFERENT ARCHITECTURAL TRADEOFFS
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                    {alternativeProjects.map(({ project, originalIndex }) => (
+                      <ProjectDirectionCard
+                        key={project.id || originalIndex}
+                        project={project}
+                        index={originalIndex}
+                        isFeatured={false}
+                        isHighlighted={isCardHighlighted(project)}
+                        standoutBadge={getStandoutBadge(project)}
+                        onSelect={selectProject}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

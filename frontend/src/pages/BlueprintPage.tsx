@@ -4,6 +4,7 @@ import { useDiscovery } from '../context/DiscoveryContext'
 import {
   BlueprintNav,
   BlueprintHero,
+  BlueprintWorkspaceRail,
   ProblemSolutionSection,
   CapabilitiesSection,
   TechStackSection,
@@ -13,6 +14,7 @@ import {
   BuildOrderSection,
   BlueprintFooterCta,
 } from '../components/blueprint'
+import { ProjectWorkspaceNav } from '../components/layout/ProjectWorkspaceNav'
 import { prefersReducedMotion } from '../lib/motion'
 
 export const BlueprintPage: React.FC = () => {
@@ -56,7 +58,7 @@ export const BlueprintPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigateTo('results')}
-            className="px-8 py-3.5 bg-[#FF5A1F] hover:bg-[#E04D16] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-sm"
+            className="px-8 py-3.5 bg-[#FF5A1F] hover:bg-[#E04D16] text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl transition-colors shadow-sm cursor-pointer"
           >
             ← RETURN TO PROJECT DIRECTIONS
           </button>
@@ -70,37 +72,56 @@ export const BlueprintPage: React.FC = () => {
       ref={pageRef}
       className="min-h-screen bg-[#F7F6F2] text-[#111111] selection:bg-[#FF5A1F]/15 selection:text-[#111111] font-sans pb-24"
     >
-      {/* Sticky Blueprint Header & Floating Section Navigator */}
+      {/* Sticky Blueprint Header */}
       <BlueprintNav />
 
-      {/* Main Blueprint Editorial Container */}
+      {/* Persistent Project Workspace Strip (Improvement 13) */}
+      <ProjectWorkspaceNav activeStage="blueprint" />
+
+      {/* Mobile Sticky Horizontal Rail (Improvement 08) */}
+      <div className="lg:hidden">
+        <BlueprintWorkspaceRail />
+      </div>
+
+      {/* Main Blueprint Editorial & Engineering Workbench Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Blueprint Hero Section */}
         <BlueprintHero project={project} index={currentIndex} />
 
-        {/* Section 01: Problem, Section 02: Solution, Section 03: Objectives */}
-        <ProblemSolutionSection project={project} />
+        {/* 2-Column Engineering Workbench Layout (Desktop Rail + Content) */}
+        <div className="flex items-start gap-10">
+          {/* Desktop Persistent Left Navigation Rail (Improvement 08) */}
+          <div className="hidden lg:block shrink-0">
+            <BlueprintWorkspaceRail />
+          </div>
 
-        {/* Section 04: Functional Capabilities (Core vs Advanced) */}
-        <CapabilitiesSection project={project} />
+          {/* Core Specifications Column */}
+          <div className="flex-1 min-w-0">
+            {/* Section 01: Problem & Section 02: Solution */}
+            <ProblemSolutionSection project={project} />
 
-        {/* Section 05: Engineering Tech Stack */}
-        <TechStackSection project={project} />
+            {/* Section 03: Functional Capabilities (Core vs Advanced) */}
+            <CapabilitiesSection project={project} />
 
-        {/* Section 06: Architecture Diagram & Section 07: Data Flow */}
-        <SystemArchitectureDiagram project={project} />
+            {/* Section 04: Engineering Tech Stack */}
+            <TechStackSection project={project} />
 
-        {/* Section 08: Pinned ScrollTrigger Development Roadmap */}
-        <DevelopmentRoadmap project={project} />
+            {/* Section 05: Interactive Architecture Diagram (Improvement 09) & Data Flow */}
+            <SystemArchitectureDiagram project={project} />
 
-        {/* Section 09: Datasets & Section 10: Engineering Risks */}
-        <ResourcesAndRisksSection project={project} />
+            {/* Section 06: Pinned ScrollTrigger Development Roadmap */}
+            <DevelopmentRoadmap project={project} />
 
-        {/* Section 11: Build Order Execution Sequence */}
-        <BuildOrderSection project={project} />
+            {/* Section 07: Datasets & Engineering Risks */}
+            <ResourcesAndRisksSection project={project} />
 
-        {/* Final Statement & Actions */}
-        <BlueprintFooterCta />
+            {/* Section 08: Build Order Execution Sequence */}
+            <BuildOrderSection project={project} />
+
+            {/* Final Statement & Actions */}
+            <BlueprintFooterCta />
+          </div>
+        </div>
       </main>
     </div>
   )
