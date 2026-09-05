@@ -118,6 +118,7 @@ async def _call_llm_json(system_prompt: str, user_prompt: str) -> Dict[str, Any]
         ],
         "response_format": {"type": "json_object"},
         "temperature": 0.6,
+        "max_tokens": 4096,
     }
 
     try:
@@ -215,8 +216,8 @@ async def generate_projects(request: GenerateProjectsRequest) -> GenerateProject
         "Your mission is to generate exactly THREE personalized, highly viable, technically rigorous final-year project ideas.\n\n"
         "STRICT GUIDELINES:\n"
         "1. Tailor every idea to the student's skills, interests, experience, timeline, and team size.\n"
-        "2. Avoid generic student clichés (e.g. basic e-commerce, generic chat apps, standard to-do lists, vanilla image classifiers).\n"
-        "3. Emphasize practical technical depth, observable milestone boundaries, and clear academic viva defense viability.\n"
+        "2. Avoid generic student clichés. Emphasize practical technical depth and milestone viability.\n"
+        "3. Keep descriptions concise and punchy: 1-2 sentences for problem, solution, tagline, and why_it_fits. 3-4 items for list fields (features, tech_stack, architecture, roadmap, etc.). This prevents truncation and maximizes clarity.\n"
         "4. DO NOT reveal chain-of-thought, reasoning steps, or preamble. Return ONLY a valid JSON object matching this schema:\n"
         "{\n"
         '  "projects": [\n'
