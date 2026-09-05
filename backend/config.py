@@ -18,15 +18,26 @@ class Settings:
 
     def reload(self):
         """Reload configuration from current environment variables."""
-        self.AI_PROVIDER: str = os.getenv("AI_PROVIDER", "gemini").lower().strip()
+        self.AI_PROVIDER: str = os.getenv("AI_PROVIDER", "groq").lower().strip()
         self.AI_API_KEY: str = (
-            os.getenv("AI_API_KEY") or os.getenv("GEMINI_API_KEY") or ""
+            os.getenv("AI_API_KEY")
+            or os.getenv("GROQ_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
+            or ""
         ).strip()
-        self.AI_BASE_URL: str = os.getenv(
-            "AI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"
-        ).rstrip("/")
-        self.AI_MODEL: str = os.getenv("AI_MODEL", "gemini-2.5-flash").strip()
-        self.AI_TIMEOUT_SECONDS: float = float(os.getenv("AI_TIMEOUT_SECONDS", "45.0"))
+        default_base_url = (
+            "https://api.groq.com/openai/v1"
+            if self.AI_PROVIDER == "groq"
+            else "https://generativelanguage.googleapis.com/v1beta/openai"
+        )
+        self.AI_BASE_URL: str = os.getenv("AI_BASE_URL", default_base_url).rstrip("/")
+        default_model = (
+            "openai/gpt-oss-20b"
+            if self.AI_PROVIDER == "groq"
+            else "gemini-2.5-flash"
+        )
+        self.AI_MODEL: str = os.getenv("AI_MODEL", default_model).strip()
+        self.AI_TIMEOUT_SECONDS: float = float(os.getenv("AI_TIMEOUT_SECONDS", "60.0"))
         
         # CORS configuration
         origins_env = os.getenv("ALLOWED_ORIGINS", "")
@@ -38,6 +49,7 @@ class Settings:
             self.ALLOWED_ORIGINS: list[str] = [
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
+                "https://projectforge-iota.vercel.app",
             ]
 
     @property

@@ -90,8 +90,8 @@ def _extract_json_from_text(raw_content: str) -> Dict[str, Any]:
 async def _call_llm_json(system_prompt: str, user_prompt: str) -> Dict[str, Any]:
     """
     Executes an async request to the configured OpenAI-compatible LLM endpoint
-    (including Google Gemini's OpenAI-compatible endpoint) and ensures clean
-    JSON output without markdown fences or chain-of-thought.
+    (such as Groq or Gemini's OpenAI-compatible API) and ensures clean,
+    validated structured JSON output.
     """
     if not settings.AI_API_KEY:
         logger.error(
@@ -99,7 +99,7 @@ async def _call_llm_json(system_prompt: str, user_prompt: str) -> Dict[str, Any]
         )
         raise AIServiceError(
             f"AI_API_KEY is required when AI_PROVIDER is '{settings.AI_PROVIDER}'. "
-            "Please configure AI_API_KEY in your backend/.env file, or set AI_PROVIDER=mock.",
+            "Please configure AI_API_KEY in your environment, or set AI_PROVIDER=mock.",
             status_code=500,
         )
 
@@ -130,8 +130,9 @@ async def _call_llm_json(system_prompt: str, user_prompt: str) -> Dict[str, Any]
                 if settings.AI_API_KEY:
                     sanitized_body = sanitized_body.replace(settings.AI_API_KEY, "[REDACTED]")
 
+                provider_name = settings.AI_PROVIDER.capitalize()
                 logger.error(
-                    f"AI Provider HTTP Error: Status {response.status_code} - Body: {sanitized_body}"
+                    f"{provider_name} Provider HTTP Error: Status {response.status_code} - Body: {sanitized_body}"
                 )
 
                 if response.status_code in (401, 403):
@@ -141,15 +142,30 @@ async def _call_llm_json(system_prompt: str, user_prompt: str) -> Dict[str, Any]
                     )
                 elif response.status_code == 429:
                     raise AIServiceError(
-                        f"{settings.AI_PROVIDER.capitalize()} API rate limit reached. Please retry in a moment.",
+                        f"{provider_name} API rate limit reached. Please retry in a moment.",
                         status_code=429,
+                    )
+                elif response.status_code in (400, 404, 422):
+                    raise AIServiceError(
+                        f"{provider_name} model or request error (status {response.status_code}). Please verify the configured model.",
+                        status_code=502,
+                    )
+                elif response.status_code >= 500:
+                    raise AIServiceError(
+                        f"{provider_name} upstream service temporarily unavailable (status {response.status_code}). Please retry.",
+                        status_code=502,
                     )
                 raise AIServiceError(
                     f"AI provider returned HTTP status {response.status_code}.",
                     status_code=502,
                 )
 
-            res_json = response.json()
+            try:
+                res_json = response.json()
+            except Exception as exc:
+                logger.error(f"Failed to decode JSON from AI provider response: {exc}")
+                raise AIServiceError("Invalid response format received from AI provider.", status_code=502)
+
             choices = res_json.get("choices")
             if not choices or not choices[0].get("message", {}).get("content"):
                 raise AIServiceError("Empty response returned by AI provider.", status_code=502)
